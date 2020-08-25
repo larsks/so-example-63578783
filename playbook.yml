@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: exclude an intermediate directory
+      find:
+        paths: toplevel
+        recurse: true
+        excludes: foo
+      register: result
+
+    - debug:
+        msg: "{{ result.files|map(attribute='path')|list }}"
+
+    - name: exclude a terminal directory
+      find:
+        paths: toplevel
+        file_type: any
+        recurse: true
+        excludes: foo
+      register: result
+
+    - debug:
+        msg: "{{ result.files|map(attribute='path')|list }}"
+
+    - name: exclude an intermediate directory with find command
+      command: >-
+        find toplevel -name foo -prune -o -type f -print
+      register: result
+
+    - debug:
+        msg: "{{ result.stdout_lines }}"
