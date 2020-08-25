@@ -2,6 +2,11 @@
 - hosts: localhost
   gather_facts: false
   tasks:
+    # This will find toplevel/foo/testfile1.txt despite
+    # the `excludes: foo` in the task. This is because the
+    # exclude patterns are only applied to the basename of
+    # items in the result set, not to intermediate
+    # directories.
     - name: exclude an intermediate directory
       find:
         paths: toplevel
@@ -12,6 +17,9 @@
     - debug:
         msg: "{{ result.files|map(attribute='path')|list }}"
 
+    # This will return `toplevel/bar` but not `toplevel/foo`, because
+    # with `file_type: any` directories are now part of the result set.
+    # It will still return `toplevel/foo/testfile1.txt`.
     - name: exclude a terminal directory
       find:
         paths: toplevel
@@ -23,6 +31,7 @@
     - debug:
         msg: "{{ result.files|map(attribute='path')|list }}"
 
+    # This will only return `toplevel/bar/testfile2.txt`.
     - name: exclude an intermediate directory with find command
       command: >-
         find toplevel -name foo -prune -o -type f -print
